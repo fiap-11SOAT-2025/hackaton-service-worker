@@ -1,8 +1,8 @@
 package database
 
 import (
-	"fiapx-worker/internal/entity"
-	"fiapx-worker/internal/repository"
+	"hackaton-service-worker/internal/entity"
+	"hackaton-service-worker/internal/repository"
 	"gorm.io/gorm"
 )
 

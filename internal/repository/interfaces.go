@@ -1,6 +1,6 @@
 package repository
 
-import "fiapx-worker/internal/entity"
+import "hackaton-service-worker/internal/entity"
 
 type VideoRepository interface {
 	FindByID(id string) (*entity.Video, error)

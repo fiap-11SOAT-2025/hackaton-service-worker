@@ -1,8 +1,8 @@
 package usecase
 
 import (
-	"fiapx-worker/internal/entity"
-	"fiapx-worker/internal/repository"
+	"hackaton-service-worker/internal/entity"
+	"hackaton-service-worker/internal/repository"
 	"fmt"
 	"log"
 	"os"
@@ -19,21 +19,27 @@ type MediaProcessor interface {
 	ZipDirectory(sourceDir, zipPath string) error
 }
 
+type Notifier interface {
+	NotifyError(videoID, email, errorMsg string) error
+}
+
 type VideoUseCase struct {
 	Repo    repository.VideoRepository
 	Storage FileStorage
 	Media   MediaProcessor
+	Notify  Notifier
 }
 
-func NewVideoUseCase(repo repository.VideoRepository, storage FileStorage, media MediaProcessor) *VideoUseCase {
+func NewVideoUseCase(repo repository.VideoRepository, storage FileStorage, media MediaProcessor, notify Notifier) *VideoUseCase {
 	return &VideoUseCase{
 		Repo:    repo,
 		Storage: storage,
 		Media:   media,
+		Notify:  notify,
 	}
 }
 
-func (uc *VideoUseCase) Execute(videoID string) error {
+func (uc *VideoUseCase) Execute(videoID, userEmail string) error {
 	log.Printf("🔄 Iniciando vídeo: %s", videoID)
 
 	video, err := uc.Repo.FindByID(videoID)
@@ -53,20 +59,20 @@ func (uc *VideoUseCase) Execute(videoID string) error {
 	zipPath := filepath.Join(workDir, "images.zip")
 
 	if err := uc.Storage.Download(video.InputBucket, video.InputKey, localVideo); err != nil {
-		return uc.handleError(video, "Falha no Download: "+err.Error())
+		return uc.handleError(video, userEmail, "Falha no Download: "+err.Error())
 	}
 
 	if err := uc.Media.ExtractFrames(localVideo, framesDir); err != nil {
-		return uc.handleError(video, "Falha na Extração: "+err.Error())
+		return uc.handleError(video, userEmail, "Falha na Extração: "+err.Error())
 	}
 
 	if err := uc.Media.ZipDirectory(framesDir, zipPath); err != nil {
-		return uc.handleError(video, "Falha ao Zipar: "+err.Error())
+		return uc.handleError(video, userEmail, "Falha ao Zipar: "+err.Error())
 	}
 
 	outputKey := fmt.Sprintf("outputs/%s/images.zip", videoID)
 	if err := uc.Storage.Upload(video.InputBucket, outputKey, zipPath); err != nil {
-		return uc.handleError(video, "Falha no Upload Final: "+err.Error())
+		return uc.handleError(video, userEmail, "Falha no Upload Final: "+err.Error())
 	}
 
 	video.Status = entity.StatusDone
@@ -78,10 +84,17 @@ func (uc *VideoUseCase) Execute(videoID string) error {
 	return uc.Repo.Update(video)
 }
 
-func (uc *VideoUseCase) handleError(video *entity.Video, msg string) error {
+func (uc *VideoUseCase) handleError(video *entity.Video, email, msg string) error {
 	log.Printf("❌ %s", msg)
 	video.Status = entity.StatusError
 	video.ErrorMessage = msg
 	uc.Repo.Update(video)
+
+	if email != "" {
+		go func() {
+			uc.Notify.NotifyError(video.ID, email, msg)
+		}()
+	}
+
 	return fmt.Errorf(msg)
 }
