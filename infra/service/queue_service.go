@@ -47,7 +47,7 @@ func (s *QueueService) Start(ctx context.Context) {
 func (s *QueueService) consume(ctx context.Context) {
 	output, err := s.SQSClient.ReceiveMessage(ctx, &sqs.ReceiveMessageInput{
 		QueueUrl:            aws.String(s.QueueURL),
-		MaxNumberOfMessages: 1,
+		MaxNumberOfMessages: 10,
 		WaitTimeSeconds:     10,
 	})
 
