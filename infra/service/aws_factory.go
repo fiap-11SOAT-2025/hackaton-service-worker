@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/secretsmanager"
 	"github.com/aws/aws-sdk-go-v2/service/ses"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sns"
 )
 
 type AWSClientFactory struct {
@@ -60,4 +61,8 @@ func (f *AWSClientFactory) NewSESClient() *ses.Client {
 
 func (f *AWSClientFactory) NewSecretsManagerClient() *secretsmanager.Client {
 	return secretsmanager.NewFromConfig(f.Config)
+}
+
+func (f *AWSClientFactory) NewSNSClient() *sns.Client {
+	return sns.NewFromConfig(f.Config)
 }

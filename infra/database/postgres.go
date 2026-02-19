@@ -10,7 +10,7 @@ import (
 )
 
 func SetupDatabase(host, user, password, name string) *gorm.DB {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=disable", host, user, password, name)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=require", host, user, password, name)
 	
 	// Configuração de logs para mostrar apenas erros graves
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{

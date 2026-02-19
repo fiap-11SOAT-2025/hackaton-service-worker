@@ -6,46 +6,42 @@ import (
 	"log"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/ses"
-	"github.com/aws/aws-sdk-go-v2/service/ses/types"
+	"github.com/aws/aws-sdk-go-v2/service/sns"
 )
 
 type NotificationService struct {
-	SESClient *ses.Client
-	Sender    string
+	client   *sns.Client
+	topicArn string
 }
 
-func NewNotificationService(client *ses.Client, sender string) *NotificationService {
-	return &NotificationService{SESClient: client, Sender: sender}
+// NotifyError implements [usecase.Notifier].
+func (s *NotificationService) NotifyError(videoID string, email string, errorMsg string) error {
+	panic("unimplemented")
 }
 
-func (n *NotificationService) NotifyError(videoID, email, errorMsg string) error {
-	subject := "FIAP X - Falha no Processamento"
-	body := fmt.Sprintf("Olá,\n\nInfelizmente o processamento do vídeo %s falhou.\n\nErro: %s\n\nAtenciosamente,\nEquipe FIAP X", videoID, errorMsg)
-
-	input := &ses.SendEmailInput{
-		Source: aws.String(n.Sender),
-		Destination: &types.Destination{
-			ToAddresses: []string{email},
-		},
-		Message: &types.Message{
-			Subject: &types.Content{
-				Data: aws.String(subject),
-			},
-			Body: &types.Body{
-				Text: &types.Content{
-					Data: aws.String(body),
-				},
-			},
-		},
+func NewNotificationService(client *sns.Client, topicArn string) *NotificationService {
+	return &NotificationService{
+		client:   client,
+		topicArn: topicArn,
 	}
+}
 
-	_, err := n.SESClient.SendEmail(context.TODO(), input)
+func (s *NotificationService) SendNotification(email string, videoID string, status string) error {
+	// O SNS envia para quem está subscrito no tópico, mas colocamos o e-mail do utilizador no texto para sabermos de quem é
+	message := fmt.Sprintf("Olá,\n\nO processamento do vídeo (ID: %s) do utilizador %s foi concluído com o status: %s.\n\nSistema de Vídeos FIAP", videoID, email, status)
+	subject := fmt.Sprintf("Atualização de Vídeo: %s", status)
+
+	_, err := s.client.Publish(context.TODO(), &sns.PublishInput{
+		Message:  aws.String(message),
+		Subject:  aws.String(subject),
+		TopicArn: aws.String(s.topicArn),
+	})
+
 	if err != nil {
-		log.Printf("⚠️ Erro ao enviar e-mail via SES para %s: %v", email, err)
-		return err
+		log.Printf("⚠️ Erro ao enviar notificação via SNS: %v", err)
+		return err // Retorna o erro se falhar
 	}
 
-	log.Printf("📧 E-mail enviado com sucesso via SES para: %s", email)
+	log.Printf("✅ Notificação SNS enviada com sucesso para o Tópico!")
 	return nil
 }

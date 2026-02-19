@@ -22,7 +22,9 @@ func main() {
 	awsSecretAccessKey := getEnv("AWS_SECRET_ACCESS_KEY", "teste")
 	awsSessionToken := getEnv("AWS_SESSION_TOKEN", "") // (Obrigatória no Academy)
 	awsQueueURL := getEnv("AWS_QUEUE_URL", "http://localhost:4566/000000000000/video-processing-queue")
-	emailIdentity := getEnv("EMAIL_IDENTITY", "no-reply@fiapx.com")
+	
+	// 👇 NOVA VARIÁVEL DO SNS AQUI
+	awsSNSTopicARN := getEnv("AWS_SNS_TOPIC_ARN", "arn:aws:sns:us-east-1:000000000000:video-processing-notifications")
 
 	// 2. Inicializa AWS PRIMEIRO
 	awsFactory := service.NewAWSClientFactory(
@@ -69,8 +71,10 @@ func main() {
 	// 5. Inicialização dos Serviços e Repositórios
 	videoRepo := database.NewVideoRepository(db)
 	storageService := service.NewStorageService(awsFactory.NewS3Client())
-	notificationService := service.NewNotificationService(awsFactory.NewSESClient(), emailIdentity)
 	mediaService := service.NewMediaService()
+	
+	// 👇 INICIALIZANDO O SERVIÇO DE NOTIFICAÇÃO COM O CLIENTE SNS
+	notificationService := service.NewNotificationService(awsFactory.NewSNSClient(), awsSNSTopicARN)
 
 	videoUC := usecase.NewVideoUseCase(videoRepo, storageService, mediaService, notificationService)
 
