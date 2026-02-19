@@ -1,29 +1,35 @@
-# Etapa 1: Builder
+# ==========================================
+# STAGE 1: Build
+# ==========================================
 FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
 
+# Instala git para baixar dependências do Go
 RUN apk add --no-cache git
 
+# Baixa as dependências
 COPY go.mod go.sum ./
 RUN go mod download
 
+# Copia o código fonte
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o hackaton-service-worker cmd/main.go
+# Compila o binário do worker (sem CGO para rodar lisinho no Alpine)
+RUN CGO_ENABLED=0 GOOS=linux go build -o hackaton-worker cmd/main.go
 
-# Etapa 2: Runner
+# ==========================================
+# STAGE 2: Produção (A Imagem Final)
+# ==========================================
 FROM alpine:latest
 
 WORKDIR /app
 
-# Instala certificados E o FFMPEG (Essencial para o Worker)
-RUN apk --no-cache add ca-certificates ffmpeg
+# ATENÇÃO AQUI: Instala os certificados de rede (para acessar a AWS), tzdata e o FFMPEG (para processar os vídeos)
+RUN apk --no-cache add ca-certificates tzdata ffmpeg
 
-# Copia o binário
-COPY --from=builder /app/hackaton-service-worker .
+# Traz o binário compilado do Stage 1
+COPY --from=builder /app/hackaton-worker .
 
-# Cria pasta temporária para processamento (opcional, mas boa prática)
-RUN mkdir -p temp
-
-CMD ["./hackaton-service-worker"]
+# Inicia o Worker
+CMD ["./hackaton-worker"]
