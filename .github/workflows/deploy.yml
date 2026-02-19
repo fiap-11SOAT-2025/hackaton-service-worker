@@ -11,7 +11,7 @@ env:
   ECS_CLUSTER: hackaton-cluster                   # Mesmo cluster
   ECS_SERVICE: hackaton-worker-service            # Nome do serviço criado no Terraform
   CONTAINER_NAME: hackaton-worker                 # Nome do container na Task
-  TASK_DEFINITION_NAME: hackaton-worker-task-family # Nome da família da Task
+  TASK_DEFINITION_NAME: hackaton-worker-task-family # Nome da família da Taskk
 
 permissions:
   contents: read
