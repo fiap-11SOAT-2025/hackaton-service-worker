@@ -21,7 +21,7 @@ func main() {
 	awsAccessKeyID := getEnv("AWS_ACCESS_KEY_ID", "teste")
 	awsSecretAccessKey := getEnv("AWS_SECRET_ACCESS_KEY", "teste")
 	awsSessionToken := getEnv("AWS_SESSION_TOKEN", "") // (Obrigatória no Academy)
-	awsQueueURL := getEnv("AWS_QUEUE_URL", "http://localhost:4566/000000000000/video-processing-queue")
+	awsQueueURL := getEnv("AWS_QUEUE_URL", "https://sqs.us-east-1.amazonaws.com/629000537837/video-processing-queue")
 	
 	// 👇 NOVA VARIÁVEL DO SNS AQUI
 	awsSNSTopicARN := getEnv("AWS_SNS_TOPIC_ARN", "arn:aws:sns:us-east-1:000000000000:video-processing-notifications")
