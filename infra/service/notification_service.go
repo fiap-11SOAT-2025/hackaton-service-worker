@@ -14,11 +14,6 @@ type NotificationService struct {
 	topicArn string
 }
 
-// NotifyError implements [usecase.Notifier].
-func (s *NotificationService) NotifyError(videoID string, email string, errorMsg string) error {
-	panic("unimplemented")
-}
-
 func NewNotificationService(client *sns.Client, topicArn string) *NotificationService {
 	return &NotificationService{
 		client:   client,
@@ -26,11 +21,24 @@ func NewNotificationService(client *sns.Client, topicArn string) *NotificationSe
 	}
 }
 
+// Envia notificação de SUCESSO
 func (s *NotificationService) SendNotification(email string, videoID string, status string) error {
-	// O SNS envia para quem está subscrito no tópico, mas colocamos o e-mail do utilizador no texto para sabermos de quem é
 	message := fmt.Sprintf("Olá,\n\nO processamento do vídeo (ID: %s) do utilizador %s foi concluído com o status: %s.\n\nSistema de Vídeos FIAP", videoID, email, status)
 	subject := fmt.Sprintf("Atualização de Vídeo: %s", status)
 
+	return s.publishToSNS(subject, message)
+}
+
+// Envia notificação de ERRO
+func (s *NotificationService) NotifyError(videoID string, email string, errorMsg string) error {
+	message := fmt.Sprintf("Olá,\n\nInfelizmente ocorreu um erro ao processar o seu vídeo (ID: %s).\nErro: %s\n\nSistema de Vídeos FIAP", videoID, errorMsg)
+	subject := "Falha no Processamento do Vídeo"
+
+	return s.publishToSNS(subject, message)
+}
+
+// Função auxiliar para não repetir código
+func (s *NotificationService) publishToSNS(subject, message string) error {
 	_, err := s.client.Publish(context.TODO(), &sns.PublishInput{
 		Message:  aws.String(message),
 		Subject:  aws.String(subject),
@@ -39,7 +47,7 @@ func (s *NotificationService) SendNotification(email string, videoID string, sta
 
 	if err != nil {
 		log.Printf("⚠️ Erro ao enviar notificação via SNS: %v", err)
-		return err // Retorna o erro se falhar
+		return err
 	}
 
 	log.Printf("✅ Notificação SNS enviada com sucesso para o Tópico!")
