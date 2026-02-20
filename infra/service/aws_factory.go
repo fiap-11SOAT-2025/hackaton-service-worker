@@ -19,25 +19,34 @@ type AWSClientFactory struct {
 
 // ADICIONAMOS O sessionToken AQUI NA ASSINATURA
 func NewAWSClientFactory(ctx context.Context, region, endpoint, key, secret, sessionToken string) *AWSClientFactory {
-	cfg, err := config.LoadDefaultConfig(ctx,
+	
+	// 1. Configurações Base (Sempre carrega a Região)
+	opts := []func(*config.LoadOptions) error{
 		config.WithRegion(region),
-		config.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(
+	}
+
+	// 2. Só sobrescreve o endpoint se não for vazio (ex: usando LocalStack)
+	if endpoint != "" {
+		opts = append(opts, config.WithEndpointResolverWithOptions(aws.EndpointResolverWithOptionsFunc(
 			func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-				if endpoint != "" {
-					return aws.Endpoint{URL: endpoint, SigningRegion: region}, nil
-				}
-				// Se o endpoint for vazio, usa a AWS Real
-				return aws.Endpoint{}, &aws.EndpointNotFoundError{}
-			})),
-		config.WithCredentialsProvider(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
-			// ADICIONAMOS O SessionToken AQUI
+				return aws.Endpoint{URL: endpoint, SigningRegion: region}, nil
+			})))
+	}
+
+	// 3. ⚠️ O SEGREDO AQUI: Só usa credenciais manuais se não for o valor "teste" ou vazio.
+	// Se estiver a rodar no ECS da AWS, ele ignora este bloco e usa a LabRole automaticamente!
+	if key != "" && key != "teste" {
+		opts = append(opts, config.WithCredentialsProvider(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
 			return aws.Credentials{
 				AccessKeyID:     key,
 				SecretAccessKey: secret,
 				SessionToken:    sessionToken,
 			}, nil
-		})),
-	)
+		})))
+	}
+
+	// Carrega a configuração final com as opções escolhidas
+	cfg, err := config.LoadDefaultConfig(ctx, opts...)
 	if err != nil {
 		log.Fatalf("Erro ao carregar configuração AWS: %v", err)
 	}
