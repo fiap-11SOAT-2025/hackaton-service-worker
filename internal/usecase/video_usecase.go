@@ -21,6 +21,7 @@ type MediaProcessor interface {
 
 type Notifier interface {
 	NotifyError(videoID, email, errorMsg string) error
+	SendNotification(email string, videoID string, status string) error // <- ADICIONAR ESTA LINHA
 }
 
 type VideoUseCase struct {
@@ -81,8 +82,19 @@ func (uc *VideoUseCase) Execute(videoID, userEmail string) error {
 
 	log.Printf("✅ Processamento concluído: %s", videoID)
 	
-	return uc.Repo.Update(video)
+	// Salva no banco de dados
+	err = uc.Repo.Update(video)
+	
+	// Se salvou com sucesso e o utilizador tem e-mail, envia a notificação de SUCESSO!
+	if err == nil && userEmail != "" {
+		go func() {
+			uc.Notify.SendNotification(userEmail, videoID, string(entity.StatusDone))
+		}()
+	}
+
+	return err
 }
+
 
 func (uc *VideoUseCase) handleError(video *entity.Video, email, msg string) error {
 	log.Printf("❌ %s", msg)
@@ -98,3 +110,4 @@ func (uc *VideoUseCase) handleError(video *entity.Video, email, msg string) erro
 
 	return fmt.Errorf(msg)
 }
+
