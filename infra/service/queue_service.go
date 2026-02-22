@@ -65,11 +65,9 @@ func (s *QueueService) consume(ctx context.Context) {
 			continue
 		}
 
-		err := s.VideoUC.Execute(body.VideoID, body.Email)
+		s.VideoUC.Execute(body.VideoID, body.Email)
+		s.deleteMessage(ctx, msg.ReceiptHandle)
 
-		if err == nil {
-			s.deleteMessage(ctx, msg.ReceiptHandle)
-		}
 	}
 }
 
