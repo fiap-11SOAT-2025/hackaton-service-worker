@@ -3,6 +3,7 @@ package service
 import (
 	"archive/zip"
 	"fmt"
+	"log"
 	"io"
 	"os"
 	"os/exec"
@@ -23,7 +24,8 @@ func (m *MediaService) ExtractFrames(videoPath, outputDir string) error {
 	cmd := exec.Command("ffmpeg", "-i", videoPath, "-vf", "fps=1", filepath.Join(outputDir, "frame_%04d.png"))
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("erro ffmpeg: %s - %v", string(output), err)
+		log.Printf("erro ffmpeg: %s - %v", string(output), err)
+		return fmt.Errorf("o arquivo de vídeo enviado é inválido ou está corrompido (FFmpeg exit status %v)", err)
 	}
 	return nil
 }

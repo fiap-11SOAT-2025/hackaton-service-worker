@@ -21,7 +21,6 @@ func NewNotificationService(client *sns.Client, topicArn string) *NotificationSe
 	}
 }
 
-// Envia notificação de SUCESSO
 func (s *NotificationService) SendNotification(email string, videoID string, status string) error {
 	message := fmt.Sprintf("Olá,\n\nO processamento do vídeo (ID: %s) do utilizador %s foi concluído com o status: %s.\n\nSistema de Vídeos FIAP", videoID, email, status)
 	subject := fmt.Sprintf("Atualização de Vídeo: %s", status)
@@ -29,7 +28,6 @@ func (s *NotificationService) SendNotification(email string, videoID string, sta
 	return s.publishToSNS(subject, message)
 }
 
-// Envia notificação de ERRO
 func (s *NotificationService) NotifyError(videoID string, email string, errorMsg string) error {
 	message := fmt.Sprintf("Olá,\n\nInfelizmente ocorreu um erro ao processar o seu vídeo (ID: %s).\nErro: %s\n\nSistema de Vídeos FIAP", videoID, errorMsg)
 	subject := "Falha no Processamento do Vídeo"
@@ -37,7 +35,6 @@ func (s *NotificationService) NotifyError(videoID string, email string, errorMsg
 	return s.publishToSNS(subject, message)
 }
 
-// Função auxiliar para não repetir código
 func (s *NotificationService) publishToSNS(subject, message string) error {
 	_, err := s.client.Publish(context.TODO(), &sns.PublishInput{
 		Message:  aws.String(message),

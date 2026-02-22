@@ -9,8 +9,8 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func SetupDatabase(host, user, password, name string) *gorm.DB {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=require", host, user, password, name)
+func SetupDatabase(host, user, password, dbName, sslmode string) *gorm.DB {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=%s", host, user, password, dbName, sslmode)
 	
 	// Configuração de logs para mostrar apenas erros graves
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
