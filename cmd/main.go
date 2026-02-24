@@ -20,7 +20,7 @@ func main() {
 	awsAccessKeyID := getEnv("AWS_ACCESS_KEY_ID", "teste")
 	awsSecretAccessKey := getEnv("AWS_SECRET_ACCESS_KEY", "teste")
 	awsSessionToken := getEnv("AWS_SESSION_TOKEN", "")
-	awsQueueURL := getEnv("AWS_QUEUE_URL", "https://sqs.us-east-1.amazonaws.com/629000537837/video-processing-queue")
+	awsQueueURL := getEnv("AWS_QUEUE_URL", "https://sqs.us-east-1.amazonaws.com/225022246839/video-processing-queue")
 	
 	awsSNSTopicARN := getEnv("AWS_SNS_TOPIC_ARN", "arn:aws:sns:us-east-1:000000000000:video-processing-notifications")
 
