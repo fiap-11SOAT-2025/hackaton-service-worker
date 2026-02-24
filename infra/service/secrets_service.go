@@ -12,8 +12,9 @@ type DatabaseCredentials struct {
 	Username string `json:"DB_USERNAME"`
 	Password string `json:"DB_PASSWORD"`
 	Host     string `json:"DB_HOST"`
-	DbName   string `json:"DB_NAME"`
+	Name     string `json:"DB_NAME"`
 	Port     string `json:"DB_PORT"`
+	Sslmode  string `json:"DB_SSL_MODE"`
 }
 
 type SecretsService struct {
