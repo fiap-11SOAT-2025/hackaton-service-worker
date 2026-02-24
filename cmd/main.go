@@ -33,7 +33,7 @@ func main() {
 		awsSessionToken,
 	)
 
-	secretName := getEnv("DB_SECRET_NAME", "database-credentials20260218011702627300000001")
+	secretName := getEnv("DB_SECRET_NAME", "database-credentials20260224231056274100000001")
 	var dbHost, dbUser, dbPassword, dbName, dbSslmode string
 
 	secretsService := service.NewSecretsService(awsFactory.NewSecretsManagerClient())
