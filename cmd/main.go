@@ -22,7 +22,7 @@ func main() {
 	awsSessionToken := getEnv("AWS_SESSION_TOKEN", "")
 	awsQueueURL := getEnv("AWS_QUEUE_URL", "https://sqs.us-east-1.amazonaws.com/225022246839/video-processing-queue")
 	
-	awsSNSTopicARN := getEnv("AWS_SNS_TOPIC_ARN", "arn:aws:sns:us-east-1:000000000000:video-processing-notifications")
+	awsSNSTopicARN := getEnv("AWS_SNS_TOPIC_ARN", "arn:aws:sns:us-east-1:225022246839:video-processing-notifications")
 
 	awsFactory := service.NewAWSClientFactory(
 		context.TODO(),
